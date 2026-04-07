@@ -7,12 +7,13 @@ import { Task } from '@/lib/api';
 interface TaskModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (task: { title: string; dueDate: string | null }) => Promise<void>;
+  onSave: (task: { title: string; description: string; dueDate: string | null }) => Promise<void>;
   initialTask?: Task | null;
 }
 
 export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalProps) => {
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerMode, setDatePickerMode] = useState<'date' | 'time'>('date');
@@ -20,9 +21,11 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
   useEffect(() => {
     if (initialTask) {
       setTitle(initialTask.title);
+      setDescription(initialTask.description)
       setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
     } else {
       setTitle('');
+      setDescription('')
       setDueDate(null);
     }
   }, [initialTask, visible]);
@@ -31,6 +34,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
     if (!title.trim()) return;
     await onSave({
       title,
+      description,
       dueDate: dueDate ? dueDate.toISOString() : null,
     });
     onClose();
@@ -53,7 +57,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
       transparent
       onRequestClose={onClose}>
       <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalSheet} onPress={() => {}}>
+        <Pressable style={styles.modalSheet} onPress={() => { }}>
           <View style={styles.modalHandle} />
           <Text style={styles.modalTitle}>{initialTask ? 'Modifier la tâche' : 'Nouvelle tâche'}</Text>
 
@@ -65,6 +69,16 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
             value={title}
             onChangeText={setTitle}
             testID="title-input"
+          />
+
+          <Text style={styles.label}>Description</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Pouvez-vous détailler ?"
+            placeholderTextColor="#C7C7CC"
+            value={description}
+            onChangeText={setDescription}
+            testID="description-input"
           />
 
           <Text style={styles.label}>Date limite</Text>

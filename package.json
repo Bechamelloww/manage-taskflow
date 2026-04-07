@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "EXPO_NO_TELEMETRY=1 expo start",
     "dev:tunnel": "EXPO_NO_TELEMETRY=1 expo start --tunnel",
+    "dev:win": "cross-env EXPO_NO_TELEMETRY=1 expo start",
     "build:web": "expo export --platform web",
     "lint": "expo lint",
     "test": "jest",
