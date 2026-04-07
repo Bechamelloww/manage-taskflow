@@ -1,20 +1,41 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, Modal, TextInput, Platform } from 'react-native';
 import { useTaskStore } from '@/stores/taskStore';
-import { Plus, Trash2 } from 'lucide-react-native';
+import { Plus, Trash2, Calendar } from 'lucide-react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function TasksScreen() {
   const { tasks, isLoading, error, fetchTasks, createTask, deleteTask, updateTask } = useTaskStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
+  const [newDueDate, setNewDueDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState<'date' | 'time'>('date');
 
   const handleAddTask = async () => {
     if (!newTitle.trim()) return;
-    await createTask({ title: newTitle, description: newDescription, completed: false });
+    await createTask({
+      title: newTitle,
+      description: newDescription,
+      completed: false,
+      dueDate: newDueDate ? newDueDate.toISOString() : undefined,
+    });
     setNewTitle('');
     setNewDescription('');
+    setNewDueDate(null);
     setModalVisible(false);
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   useEffect(() => {
@@ -54,6 +75,12 @@ export default function TasksScreen() {
                 {item.title}
               </Text>
               <Text style={styles.taskDescription}>{item.description}</Text>
+              {item.dueDate && (
+                <View style={styles.dueDateRow}>
+                  <Calendar size={12} color="#8E8E93" />
+                  <Text style={styles.dueDateText}>{formatDate(item.dueDate)}</Text>
+                </View>
+              )}
             </Pressable>
             <Pressable
               onPress={() => deleteTask(item.id)}
@@ -97,6 +124,54 @@ export default function TasksScreen() {
               multiline
               testID="description-input"
             />
+
+            <Text style={styles.label}>Date limite</Text>
+            <Pressable
+              style={styles.datePickerButton}
+              onPress={() => setShowDatePicker(true)}
+              testID="due-date-button">
+              <Calendar size={16} color="#8E8E93" />
+              <Text style={[styles.datePickerText, !newDueDate && styles.datePickerPlaceholder]}>
+                {newDueDate ? formatDate(newDueDate.toISOString()) : 'Choisir une date...'}
+              </Text>
+              {newDueDate && (
+                <Pressable onPress={() => setNewDueDate(null)}>
+                  <Text style={styles.clearDateText}>✕</Text>
+                </Pressable>
+              )}
+            </Pressable>
+
+            {showDatePicker && Platform.OS === 'ios' && (
+              <Pressable style={styles.dateConfirmButton} onPress={() => setShowDatePicker(false)}>
+                <Text style={styles.dateConfirmText}>Confirmer</Text>
+              </Pressable>
+            )}
+            {showDatePicker && (
+              <DateTimePicker
+                value={newDueDate ?? new Date()}
+                mode={Platform.OS === 'ios' ? 'datetime' : datePickerMode}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                minimumDate={new Date()}
+                onChange={(_, selectedDate) => {
+                  if (!selectedDate) {
+                    setShowDatePicker(false);
+                    return;
+                  }
+                  if (Platform.OS === 'android') {
+                    if (datePickerMode === 'date') {
+                      setNewDueDate(selectedDate);
+                      setDatePickerMode('time');
+                    } else {
+                      setNewDueDate(selectedDate);
+                      setDatePickerMode('date');
+                      setShowDatePicker(false);
+                    }
+                  } else {
+                    setNewDueDate(selectedDate);
+                  }
+                }}
+              />
+            )}
 
             <View style={styles.modalActions}>
               <Pressable style={styles.cancelButton} onPress={() => setModalVisible(false)}>
@@ -152,6 +227,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
     marginTop: 4,
+  },
+  dueDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: 4,
+  },
+  dueDateText: {
+    fontSize: 12,
+    color: '#8E8E93',
   },
   deleteButton: {
     padding: 8,
@@ -224,6 +309,40 @@ const styles = StyleSheet.create({
   inputMultiline: {
     minHeight: 90,
     textAlignVertical: 'top',
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  datePickerText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#000000',
+  },
+  datePickerPlaceholder: {
+    color: '#C7C7CC',
+  },
+  clearDateText: {
+    fontSize: 16,
+    color: '#8E8E93',
+    paddingHorizontal: 4,
+  },
+  dateConfirmButton: {
+    alignSelf: 'flex-end',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginBottom: 4,
+  },
+  dateConfirmText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalActions: {
     flexDirection: 'row',
