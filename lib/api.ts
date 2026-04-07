@@ -10,9 +10,8 @@ const api = axios.create({
 export interface Task {
   id: string;
   title: string;
-  description: string;
   completed: boolean;
-  dueDate?: string;
+  dueDate?: string | null;
   createdAt: string;
   updatedAt: string;
 }
