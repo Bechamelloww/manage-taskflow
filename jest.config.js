@@ -7,7 +7,7 @@ const config = {
     },
     setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
     transformIgnorePatterns: [
-        'node_modules/(?!(expo-modules-core|expo-router|react-native|expo|@react-native|@react-navigation)/)',
+        'node_modules/(?!(expo-modules-core|expo-router|react-native|expo|@react-native|@react-navigation|@react-native-community/datetimepicker)/)',
     ],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/$1',

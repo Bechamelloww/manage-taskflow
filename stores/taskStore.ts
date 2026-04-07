@@ -19,7 +19,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await TasksAPI.getTasks();
-      set({ tasks: response.data });
+      const sortedTasks = response.data.sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+      set({ tasks: sortedTasks });
     } catch  {
       set({ error: 'Failed to fetch tasks' });
     } finally {
@@ -30,7 +35,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await TasksAPI.createTask(task);
-      set({ tasks: [...get().tasks, response.data] });
+      const newTasks = [...get().tasks, response.data].sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+      set({ tasks: newTasks });
     } catch {
       set({ error: 'Failed to create task' });
     } finally {
@@ -41,8 +51,13 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await TasksAPI.updateTask(id, task);
+      const updatedTasks = get().tasks.map((t) => (t.id === id ? response.data : t)).sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
       set({
-        tasks: get().tasks.map((t) => (t.id === id ? response.data : t)),
+        tasks: updatedTasks,
       });
     } catch  {
       set({ error: 'Failed to update task' });
