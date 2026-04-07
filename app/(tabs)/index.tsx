@@ -247,6 +247,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F2F7',
   },
+  centerText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#8E8E93',
+  },
   taskItem: {
     flexDirection: 'row',
     alignItems: 'center',
