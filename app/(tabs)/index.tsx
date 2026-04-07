@@ -1,16 +1,27 @@
-import { useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, Pressable, Modal, TextInput } from 'react-native';
 import { useTaskStore } from '@/stores/taskStore';
 import { Plus, Trash2 } from 'lucide-react-native';
 
 export default function TasksScreen() {
-  const { tasks, isLoading, error, fetchTasks, deleteTask, updateTask } = useTaskStore();
+  const { tasks, isLoading, error, fetchTasks, createTask, deleteTask, updateTask } = useTaskStore();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+
+  const handleAddTask = async () => {
+    if (!newTitle.trim()) return;
+    await createTask({ title: newTitle, description: newDescription, completed: false });
+    setNewTitle('');
+    setNewDescription('');
+    setModalVisible(false);
+  };
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
 
-  if (isLoading) {
+  if (isLoading && tasks.length === 0) {
     return (
       <View style={styles.container}>
         <Text>Loading tasks...</Text>
@@ -53,9 +64,55 @@ export default function TasksScreen() {
           </View>
         )}
       />
-      <Pressable style={styles.fab} testID='add-button'>
+      <Pressable style={styles.fab} testID='add-button' onPress={() => setModalVisible(true)}>
         <Plus size={24} color="#FFFFFF" />
       </Pressable>
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalVisible(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
+          <Pressable style={styles.modalSheet} onPress={() => {}}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>New Task</Text>
+
+            <Text style={styles.label}>Title</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="What needs to be done?"
+              placeholderTextColor="#C7C7CC"
+              value={newTitle}
+              onChangeText={setNewTitle}
+              testID="title-input"
+            />
+
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={[styles.input, styles.inputMultiline]}
+              placeholder="Add some details..."
+              placeholderTextColor="#C7C7CC"
+              value={newDescription}
+              onChangeText={setNewDescription}
+              multiline
+              testID="description-input"
+            />
+
+            <View style={styles.modalActions}>
+              <Pressable style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.saveButton, !newTitle.trim() && styles.saveButtonDisabled]}
+                onPress={handleAddTask}
+                disabled={!newTitle.trim()}
+                testID="save-button">
+                <Text style={styles.saveButtonText}>Add Task</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -114,6 +171,95 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  modalHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#E5E5EA',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  input: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#000000',
+  },
+  inputMultiline: {
+    minHeight: 90,
+    textAlignVertical: 'top',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  cancelButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginRight: 8,
+  },
+  cancelButtonText: {
+    color: '#8E8E93',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  saveButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#B0D4FF',
+    shadowOpacity: 0,
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   errorText: {
     color: '#FF3B30',
