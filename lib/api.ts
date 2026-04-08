@@ -13,6 +13,7 @@ export interface Task {
   completed: boolean;
   description: string;
   dueDate?: string | null;
+  color?: string | null;
   createdAt: string;
   updatedAt: string;
 }
