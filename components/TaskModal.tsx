@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, Pressable, Platform } from 'react-native';
-import { Calendar } from 'lucide-react-native';
+import { Calendar, Check, X } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Task } from '@/lib/api';
+import { TASK_COLORS, DEFAULT_COLOR, theme } from '@/lib/colors';
 
 interface TaskModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (task: { title: string; description: string; dueDate: string | null }) => Promise<void>;
+  onSave: (task: { title: string; description: string; dueDate: string | null; color: string }) => Promise<void>;
   initialTask?: Task | null;
 }
 
@@ -15,18 +16,21 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [color, setColor] = useState<string>(DEFAULT_COLOR);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerMode, setDatePickerMode] = useState<'date' | 'time'>('date');
 
   useEffect(() => {
     if (initialTask) {
       setTitle(initialTask.title);
-      setDescription(initialTask.description)
+      setDescription(initialTask.description ?? '');
       setDueDate(initialTask.dueDate ? new Date(initialTask.dueDate) : null);
+      setColor(initialTask.color || DEFAULT_COLOR);
     } else {
       setTitle('');
-      setDescription('')
+      setDescription('');
       setDueDate(null);
+      setColor(DEFAULT_COLOR);
     }
   }, [initialTask, visible]);
 
@@ -36,30 +40,34 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
       title,
       description,
       dueDate: dueDate ? dueDate.toISOString() : null,
+      color,
     });
     onClose();
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleString('fr-FR', {
+  const formatDate = (date: Date) =>
+    date.toLocaleString('fr-FR', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalSheet} onPress={() => { }}>
+        <Pressable style={styles.modalSheet} onPress={() => {}}>
           <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>{initialTask ? 'Modifier la tâche' : 'Nouvelle tâche'}</Text>
+
+          <View style={styles.headerRow}>
+            <Text style={styles.modalTitle}>
+              {initialTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
+            </Text>
+            <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
+              <X size={20} color={theme.textSoft} />
+            </Pressable>
+          </View>
 
           <Text style={styles.label}>Titre</Text>
           <TextInput
@@ -73,33 +81,54 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
 
           <Text style={styles.label}>Description</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, styles.inputMultiline]}
             placeholder="Pouvez-vous détailler ?"
             placeholderTextColor="#C7C7CC"
             value={description}
             onChangeText={setDescription}
+            multiline
             testID="description-input"
           />
+
+          <Text style={styles.label}>Couleur</Text>
+          <View style={styles.colorRow}>
+            {TASK_COLORS.map(c => {
+              const selected = c.hex === color;
+              return (
+                <Pressable
+                  key={c.hex}
+                  onPress={() => setColor(c.hex)}
+                  testID={`color-${c.hex}`}
+                  style={[
+                    styles.colorSwatch,
+                    { backgroundColor: c.hex },
+                    selected && styles.colorSwatchSelected,
+                  ]}>
+                  {selected && <Check size={16} color="#FFF" strokeWidth={3} />}
+                </Pressable>
+              );
+            })}
+          </View>
 
           <Text style={styles.label}>Date limite</Text>
           <Pressable
             style={styles.datePickerButton}
             onPress={() => setShowDatePicker(true)}
             testID="due-date-button">
-            <Calendar size={16} color="#8E8E93" />
+            <Calendar size={16} color={color} />
             <Text style={[styles.datePickerText, !dueDate && styles.datePickerPlaceholder]}>
               {dueDate ? formatDate(dueDate) : 'Choisir une date...'}
             </Text>
             {dueDate && (
-              <Pressable onPress={() => setDueDate(null)}>
-                <Text style={styles.clearDateText}>✕</Text>
+              <Pressable onPress={() => setDueDate(null)} hitSlop={8}>
+                <X size={16} color={theme.textMuted} />
               </Pressable>
             )}
           </Pressable>
 
           {showDatePicker && Platform.OS === 'ios' && (
             <Pressable style={styles.dateConfirmButton} onPress={() => setShowDatePicker(false)}>
-              <Text style={styles.dateConfirmText}>Confirmer</Text>
+              <Text style={[styles.dateConfirmText, { color }]}>Confirmer</Text>
             </Pressable>
           )}
           {showDatePicker && (
@@ -134,11 +163,17 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
               <Text style={styles.cancelButtonText}>Annuler</Text>
             </Pressable>
             <Pressable
-              style={[styles.saveButton, !title.trim() && styles.saveButtonDisabled]}
+              style={[
+                styles.saveButton,
+                { backgroundColor: color },
+                !title.trim() && styles.saveButtonDisabled,
+              ]}
               onPress={handleSave}
               disabled={!title.trim()}
               testID="save-button">
-              <Text style={styles.saveButtonText}>{initialTask ? 'Enregistrer' : 'Ajouter'}</Text>
+              <Text style={styles.saveButtonText}>
+                {initialTask ? 'Enregistrer' : 'Ajouter'}
+              </Text>
             </Pressable>
           </View>
         </Pressable>
@@ -150,71 +185,102 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: theme.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     padding: 24,
     paddingTop: 12,
-    minHeight: '50%',
+    paddingBottom: 32,
   },
   modalHandle: {
-    width: 40,
-    height: 4,
+    width: 44,
+    height: 5,
     backgroundColor: '#E5E5EA',
-    borderRadius: 2,
+    borderRadius: 3,
     alignSelf: 'center',
+    marginBottom: 16,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#000000',
-    marginBottom: 24,
+    color: theme.text,
+    letterSpacing: -0.4,
+  },
+  closeBtn: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: theme.bg,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.textMuted,
     marginBottom: 8,
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: theme.bg,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     fontSize: 16,
-    color: '#000000',
-    marginBottom: 20,
+    color: theme.text,
+    marginBottom: 18,
   },
   inputMultiline: {
-    height: 100,
+    minHeight: 72,
     textAlignVertical: 'top',
+  },
+  colorRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 18,
+  },
+  colorSwatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  colorSwatchSelected: {
+    borderWidth: 3,
+    borderColor: '#FFF',
+    transform: [{ scale: 1.12 }],
   },
   datePickerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 20,
+    backgroundColor: theme.bg,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 18,
+    gap: 10,
   },
   datePickerText: {
     flex: 1,
-    fontSize: 16,
-    color: '#000000',
-    marginLeft: 10,
+    fontSize: 15,
+    color: theme.text,
   },
   datePickerPlaceholder: {
     color: '#C7C7CC',
-  },
-  clearDateText: {
-    fontSize: 18,
-    color: '#8E8E93',
-    paddingHorizontal: 8,
   },
   dateConfirmButton: {
     alignSelf: 'flex-end',
@@ -222,38 +288,40 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dateConfirmText: {
-    color: '#007AFF',
-    fontWeight: '600',
-    fontSize: 16,
+    fontWeight: '700',
+    fontSize: 15,
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 'auto',
-    paddingTop: 20,
+    marginTop: 12,
+    gap: 8,
   },
   cancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    marginRight: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 22,
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: theme.textMuted,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
   },
   saveButtonDisabled: {
-    backgroundColor: '#B0D4FF',
+    opacity: 0.4,
   },
   saveButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FFFFFF',
   },
 });

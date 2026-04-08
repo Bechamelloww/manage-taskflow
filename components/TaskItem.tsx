@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Trash2, Calendar, Edit2, CheckSquare } from 'lucide-react-native';
+import { Trash2, Calendar, Pencil, Check } from 'lucide-react-native';
 import { Task } from '@/lib/api';
+import { getTint, theme, DEFAULT_COLOR } from '@/lib/colors';
 
 interface TaskItemProps {
   task: Task;
@@ -12,62 +13,99 @@ interface TaskItemProps {
   isSelected: boolean;
 }
 
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 export const TaskItem = ({ task, onToggleComplete, onDelete, onEdit, multi, isSelected }: TaskItemProps) => {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const color = task.color || DEFAULT_COLOR;
+  const tint = getTint(color);
+  const isOverdue = !!task.dueDate && !task.completed && new Date(task.dueDate).getTime() < Date.now();
 
   return (
-    <View style={styles.taskItem}>
-      <Pressable
-        onPress={() => onToggleComplete(task.id, !task.completed)}
-        style={styles.taskContent}>
-        <Text style={[
-          styles.taskTitle,
-          task.completed && styles.completedTask
+    <Pressable
+      onPress={() => onToggleComplete(task.id, !task.completed)}
+      style={({ pressed }) => [
+        styles.taskItem,
+        { backgroundColor: tint },
+        task.completed && styles.taskItemCompleted,
+        pressed && styles.taskItemPressed,
+      ]}>
+      <View style={[styles.cornerAccent, { backgroundColor: color }]} />
+
+      <View
+        style={[
+          styles.checkbox,
+          { borderColor: color },
+          task.completed && { backgroundColor: color, borderColor: color },
         ]}>
+        {task.completed && <Check size={16} color="#FFF" strokeWidth={3} />}
+      </View>
+
+      <View style={styles.taskContent}>
+        <Text
+          numberOfLines={2}
+          style={[styles.taskTitle, task.completed && styles.completedTask]}>
           {task.title}
         </Text>
-        {task.description && (
-          <Text style={[
-            styles.description,
-            task.completed && styles.completedDesc
-          ]}>
+        {!!task.description && !task.completed && (
+          <Text numberOfLines={2} style={styles.description}>
             {task.description}
           </Text>
         )}
-        {task.dueDate && (
-          <View style={styles.dueDateRow}>
-            <Calendar size={12} color="#8E8E93" />
-            <Text style={styles.dueDateText}>{formatDate(task.dueDate)}</Text>
+        {!!task.dueDate && (
+          <View
+            style={[
+              styles.dueDateRow,
+              { backgroundColor: isOverdue ? '#FFE5E5' : 'rgba(255,255,255,0.75)' },
+            ]}>
+            <Calendar size={12} color={isOverdue ? theme.danger : color} />
+            <Text
+              style={[
+                styles.dueDateText,
+                { color: isOverdue ? theme.danger : color },
+              ]}>
+              {formatDate(task.dueDate)}
+            </Text>
           </View>
         )}
-      </Pressable>
-      <View style={styles.actions}>
-        {multi && (
-          <CheckSquare size={20} color={isSelected ? '#007AFF' : '#CCC'} />
-        )}
-        {!multi && (<Pressable
-          onPress={() => onEdit(task)}
-          testID={`edit-button-${task.id}`}
-          style={styles.actionButton}>
-          <Edit2 size={20} color="#007AFF" />
-        </Pressable>)}
-        {!multi && (<Pressable
-          onPress={() => onDelete(task.id)}
-          testID={`delete-button-${task.id}`}
-          style={styles.actionButton}>
-          <Trash2 size={20} color="#FF3B30" />
-        </Pressable>)}
       </View>
-    </View>
+
+      <View style={styles.actions}>
+        {multi ? (
+          <View
+            style={[
+              styles.selectCircle,
+              isSelected && { backgroundColor: color, borderColor: color },
+            ]}>
+            {isSelected && <Check size={14} color="#FFF" strokeWidth={3} />}
+          </View>
+        ) : (
+          <>
+            <Pressable
+              onPress={() => onEdit(task)}
+              testID={`edit-button-${task.id}`}
+              hitSlop={6}
+              style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}>
+              <Pencil size={18} color={theme.textSoft} />
+            </Pressable>
+            <Pressable
+              onPress={() => onDelete(task.id)}
+              testID={`delete-button-${task.id}`}
+              hitSlop={6}
+              style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}>
+              <Trash2 size={18} color={theme.danger} />
+            </Pressable>
+          </>
+        )}
+      </View>
+    </Pressable>
   );
 };
 
@@ -75,16 +113,43 @@ const styles = StyleSheet.create({
   taskItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    paddingVertical: 16,
+    paddingRight: 12,
+    paddingLeft: 16,
     marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
+    marginVertical: 6,
+    borderRadius: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  taskItemCompleted: {
+    opacity: 0.6,
+  },
+  taskItemPressed: {
+    transform: [{ scale: 0.985 }],
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  },
+  cornerAccent: {
+    position: 'absolute',
+    top: -28,
+    right: -28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    opacity: 0.22,
+  },
+  checkbox: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   taskContent: {
     flex: 1,
@@ -92,38 +157,53 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: theme.text,
+    letterSpacing: -0.2,
   },
   completedTask: {
     textDecorationLine: 'line-through',
-    color: '#8E8E93',
-  },
-  completedDesc: {
-    opacity: 0
-  },
-  dueDateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 4,
+    color: theme.textMuted,
   },
   description: {
+    marginTop: 4,
+    fontSize: 13,
+    color: theme.textSoft,
+    lineHeight: 18,
+  },
+  dueDateRow: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
     gap: 4,
-    fontSize: 10,
-    color: '#cabebe',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   dueDateText: {
     fontSize: 12,
-    color: '#8E8E93',
+    fontWeight: '600',
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 4,
   },
   actionButton: {
     padding: 8,
+    borderRadius: 8,
+  },
+  pressed: {
+    backgroundColor: theme.bg,
+  },
+  selectCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    borderColor: '#D1D1D6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
   },
 });
