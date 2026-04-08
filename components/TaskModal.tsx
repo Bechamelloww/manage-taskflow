@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, Pressable, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { Calendar, Check, X } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Task } from '@/lib/api';
+import { useTranslation } from '@/hooks/useTranslation';
 import { TASK_COLORS, DEFAULT_COLOR, theme } from '@/lib/colors';
 
 interface TaskModalProps {
@@ -13,6 +14,7 @@ interface TaskModalProps {
 }
 
 export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalProps) => {
+  const { t, changeLanguage, locale } = useTranslation();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
@@ -57,126 +59,136 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalSheet} onPress={() => {}}>
-          <View style={styles.modalHandle} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ width: '100%' }}
+        >
+          <Pressable style={styles.modalSheet} onPress={() => { }}>
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.modalHandle} />
 
-          <View style={styles.headerRow}>
-            <Text style={styles.modalTitle}>
-              {initialTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
-            </Text>
-            <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
-              <X size={20} color={theme.textSoft} />
-            </Pressable>
-          </View>
-
-          <Text style={styles.label}>Titre</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Que faut-il faire ?"
-            placeholderTextColor="#C7C7CC"
-            value={title}
-            onChangeText={setTitle}
-            testID="title-input"
-          />
-
-          <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={[styles.input, styles.inputMultiline]}
-            placeholder="Pouvez-vous détailler ?"
-            placeholderTextColor="#C7C7CC"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            testID="description-input"
-          />
-
-          <Text style={styles.label}>Couleur</Text>
-          <View style={styles.colorRow}>
-            {TASK_COLORS.map(c => {
-              const selected = c.hex === color;
-              return (
-                <Pressable
-                  key={c.hex}
-                  onPress={() => setColor(c.hex)}
-                  testID={`color-${c.hex}`}
-                  style={[
-                    styles.colorSwatch,
-                    { backgroundColor: c.hex },
-                    selected && styles.colorSwatchSelected,
-                  ]}>
-                  {selected && <Check size={16} color="#FFF" strokeWidth={3} />}
+              <View style={styles.headerRow}>
+                <Text style={styles.modalTitle}>
+                  {initialTask ? t('modal.editTask') : t('modal.newTask')}
+                </Text>
+                <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
+                  <X size={20} color={theme.textSoft} />
                 </Pressable>
-              );
-            })}
-          </View>
+              </View>
 
-          <Text style={styles.label}>Date limite</Text>
-          <Pressable
-            style={styles.datePickerButton}
-            onPress={() => setShowDatePicker(true)}
-            testID="due-date-button">
-            <Calendar size={16} color={color} />
-            <Text style={[styles.datePickerText, !dueDate && styles.datePickerPlaceholder]}>
-              {dueDate ? formatDate(dueDate) : 'Choisir une date...'}
-            </Text>
-            {dueDate && (
-              <Pressable onPress={() => setDueDate(null)} hitSlop={8}>
-                <X size={16} color={theme.textMuted} />
+              <Text style={styles.label}>{t('modal.title')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t('modal.title_p')}
+                placeholderTextColor="#C7C7CC"
+                value={title}
+                onChangeText={setTitle}
+                testID="title-input"
+              />
+
+              <Text style={styles.label}>{t('modal.desc')}</Text>
+              <TextInput
+                style={[styles.input, styles.inputMultiline]}
+                placeholder={t('modal.description_p')}
+                placeholderTextColor="#C7C7CC"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                testID="description-input"
+              />
+
+              <Text style={styles.label}>{t('modal.color')}</Text>
+              <View style={styles.colorRow}>
+                {TASK_COLORS.map(c => {
+                  const selected = c.hex === color;
+                  return (
+                    <Pressable
+                      key={c.hex}
+                      onPress={() => setColor(c.hex)}
+                      testID={`color-${c.hex}`}
+                      style={[
+                        styles.colorSwatch,
+                        { backgroundColor: c.hex },
+                        selected && styles.colorSwatchSelected,
+                      ]}>
+                      {selected && <Check size={16} color="#FFF" strokeWidth={3} />}
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.label}>{t('modal.due')}</Text>
+              <Pressable
+                style={styles.datePickerButton}
+                onPress={() => setShowDatePicker(true)}
+                testID="due-date-button">
+                <Calendar size={16} color={color} />
+                <Text style={[styles.datePickerText, !dueDate && styles.datePickerPlaceholder]}>
+                  {dueDate ? formatDate(dueDate) : t('modal.date_p')}
+                </Text>
+                {dueDate && (
+                  <Pressable onPress={() => setDueDate(null)} hitSlop={8}>
+                    <X size={16} color={theme.textMuted} />
+                  </Pressable>
+                )}
               </Pressable>
-            )}
+
+              {showDatePicker && Platform.OS === 'ios' && (
+                <Pressable style={styles.dateConfirmButton} onPress={() => setShowDatePicker(false)}>
+                  <Text style={[styles.dateConfirmText, { color }]}>Confirmer</Text>
+                </Pressable>
+              )}
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dueDate ?? new Date()}
+                  mode={Platform.OS === 'ios' ? 'datetime' : datePickerMode}
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minimumDate={new Date()}
+                  onChange={(_, selectedDate) => {
+                    if (!selectedDate) {
+                      setShowDatePicker(false);
+                      return;
+                    }
+                    if (Platform.OS === 'android') {
+                      if (datePickerMode === 'date') {
+                        setDueDate(selectedDate);
+                        setDatePickerMode('time');
+                      } else {
+                        setDueDate(selectedDate);
+                        setDatePickerMode('date');
+                        setShowDatePicker(false);
+                      }
+                    } else {
+                      setDueDate(selectedDate);
+                    }
+                  }}
+                />
+              )}
+
+              <View style={styles.modalActions}>
+                <Pressable style={styles.cancelButton} onPress={onClose}>
+                  <Text style={styles.cancelButtonText}>{t('modal.cancel')}</Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.saveButton,
+                    { backgroundColor: color },
+                    !title.trim() && styles.saveButtonDisabled,
+                  ]}
+                  onPress={handleSave}
+                  disabled={!title.trim()}
+                  testID="save-button">
+                  <Text style={styles.saveButtonText}>
+                    {initialTask ? t('modal.save') : t('modal.add')}
+                  </Text>
+                </Pressable>
+              </View>
+            </ScrollView>
           </Pressable>
-
-          {showDatePicker && Platform.OS === 'ios' && (
-            <Pressable style={styles.dateConfirmButton} onPress={() => setShowDatePicker(false)}>
-              <Text style={[styles.dateConfirmText, { color }]}>Confirmer</Text>
-            </Pressable>
-          )}
-          {showDatePicker && (
-            <DateTimePicker
-              value={dueDate ?? new Date()}
-              mode={Platform.OS === 'ios' ? 'datetime' : datePickerMode}
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              minimumDate={new Date()}
-              onChange={(_, selectedDate) => {
-                if (!selectedDate) {
-                  setShowDatePicker(false);
-                  return;
-                }
-                if (Platform.OS === 'android') {
-                  if (datePickerMode === 'date') {
-                    setDueDate(selectedDate);
-                    setDatePickerMode('time');
-                  } else {
-                    setDueDate(selectedDate);
-                    setDatePickerMode('date');
-                    setShowDatePicker(false);
-                  }
-                } else {
-                  setDueDate(selectedDate);
-                }
-              }}
-            />
-          )}
-
-          <View style={styles.modalActions}>
-            <Pressable style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Annuler</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.saveButton,
-                { backgroundColor: color },
-                !title.trim() && styles.saveButtonDisabled,
-              ]}
-              onPress={handleSave}
-              disabled={!title.trim()}
-              testID="save-button">
-              <Text style={styles.saveButtonText}>
-                {initialTask ? 'Enregistrer' : 'Ajouter'}
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
+        </KeyboardAvoidingView>
       </Pressable>
     </Modal>
   );

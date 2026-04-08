@@ -1,21 +1,28 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { useTranslation } from '@/hooks/useTranslation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Info } from 'lucide-react-native';
 import { theme } from '@/lib/colors';
 
 export default function SettingsScreen() {
+  const { t, changeLanguage, locale } = useTranslation();
   const envVars = {
-    'App Name': process.env.EXPO_PUBLIC_APP_NAME,
-    'App Version': process.env.EXPO_PUBLIC_APP_VERSION,
-    'Environment': process.env.EXPO_PUBLIC_ENVIRONMENT,
-    'API URL': process.env.EXPO_PUBLIC_API_URL,
+    [t('settings.name')]: process.env.EXPO_PUBLIC_APP_NAME,
+    [t('settings.version')]: process.env.EXPO_PUBLIC_APP_VERSION,
+    [t('settings.env')]: process.env.EXPO_PUBLIC_ENVIRONMENT,
+    [t('settings.apiurl')]: process.env.EXPO_PUBLIC_API_URL,
   };
+
+  const languages = [
+    { code: 'en', label: 'English', flag: '🇬🇧' },
+    { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  ];
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Environment Information</Text>
+          <Text style={styles.sectionTitle}>{t('settings.environmentinfo')}</Text>
           {Object.entries(envVars).map(([key, value]) => (
             <View key={key} style={styles.row}>
               <Text style={styles.label}>{key}</Text>
@@ -27,12 +34,35 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.changeLanguage')}</Text>
+          {languages.map((lang) => {
+            const isActive = locale === lang.code;
+
+            return (
+              <Pressable
+                key={lang.code}
+                style={[styles.languageItem, isActive && styles.activeItem]}
+                onPress={() => changeLanguage(lang.code)}
+              >
+                <Text style={styles.flag}>{lang.flag}</Text>
+
+                <Text style={styles.languageText}>
+                  {lang.label}
+                </Text>
+
+                {isActive && <Text style={styles.check}>✓</Text>}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.section}>
           <View style={styles.aboutHeader}>
             <Info size={18} color={theme.primary} />
-            <Text style={styles.sectionTitle}>About</Text>
+            <Text style={styles.sectionTitle2}>{t('settings.about')}</Text>
           </View>
           <Text style={styles.description}>
-            This task management app helps you stay organized and productive. Built with Expo and React Native.
+            {t('settings.description')}
           </Text>
         </View>
       </ScrollView>
@@ -94,6 +124,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     letterSpacing: -0.3,
   },
+  sectionTitle2: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.text,
+    marginBottom: 12,
+    marginTop: 10,
+    letterSpacing: -0.3,
+  },
   aboutHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -123,5 +161,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.textSoft,
     lineHeight: 21,
+  },
+  check: {
+    fontSize: 18,
+    color: '#007AFF',
+    fontWeight: 'bold',
+  },
+  flag: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+
+  languageText: {
+    flex: 1,
+    fontSize: 16,
+  },
+  languageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  activeItem: {
+    backgroundColor: '#E6F0FF',
   },
 });

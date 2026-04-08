@@ -1,14 +1,16 @@
+import { useTranslation } from '@/hooks/useTranslation';
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function NotFoundScreen() {
+  const { t, changeLanguage, locale } = useTranslation();
   return (
     <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
+      <Stack.Screen options={{ title: t('notf.oops') }} />
       <View style={styles.container}>
-        <Text style={styles.text}>This screen doesn't exist.</Text>
+        <Text style={styles.text}>{t('notf.screen')}</Text>
         <Link href="/" style={styles.link}>
-          <Text>Go to home screen!</Text>
+          <Text>{t('notf.link')}</Text>
         </Link>
       </View>
     </>

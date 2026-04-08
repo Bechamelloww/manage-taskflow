@@ -1,0 +1,35 @@
+{
+    "settings": {
+        "about": "À propos",
+        "environmentinfo": "Informations d'environnement",
+        "description": "Cette app de gestion vous aide à rester organisé et productif.\nFait avec Expo et React Natif.",
+        "changeLanguage": "Changer la langue",
+        "name": "Nom de l'App",
+        "version": "Version de l'App",
+        "env": "Environnement",
+        "apiurl": "URL de l'API"
+    },
+    "title": {
+        "tasks": "Tâches",
+        "settings": "Paramètres"
+    },
+    "modal": {
+        "editTask": "Modifier la tâche",
+        "newTask": "Nouvelle tâche",
+        "title_p": "Que faut-il faire ?",
+        "description_p": "Pouvez-vous détailler ?",
+        "date_p": "Choisir une date...",
+        "save": "Enregistrer",
+        "add": "Ajouter",
+        "cancel": "Annuler",
+        "title": "Titre",
+        "desc": "Description",
+        "color": "Couleur",
+        "due": "Date limite"
+    },
+    "notf": {
+        "oops": "Oops",
+        "screen": "Cet page n'existe pas.",
+        "link": "Retourner sur la page d'acceuil!"
+    }
+}

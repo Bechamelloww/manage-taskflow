@@ -1,0 +1,35 @@
+{
+    "settings": {
+        "about": "About",
+        "environmentinfo": "Environment Information",
+        "description": "This task management app helps you stay organized and productive.\nBuilt with Expo and React Native.",
+        "changeLanguage": "Change language",
+        "name": "App Name",
+        "version": "App Version",
+        "env": "Environment",
+        "apiurl": "API URL"
+    },
+    "title": {
+        "tasks": "Tasks",
+        "settings": "Settings"
+    },
+    "modal": {
+        "editTask": "Edit the Task",
+        "newTask": "New Task",
+        "title_p": "What have you planned ?",
+        "description_p": "Can you detail ?",
+        "date_p": "Pick an date...",
+        "save": "Save",
+        "add": "Add",
+        "cancel": "Cancel",
+        "title": "Title",
+        "desc": "Description",
+        "color": "Color",
+        "due": "Due date"
+    },
+    "notf": {
+        "oops": "Oops",
+        "screen": "This screen doesn't exist.",
+        "link": "Go to home screen!"
+    }
+}
