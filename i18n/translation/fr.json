@@ -2,7 +2,7 @@
     "settings": {
         "about": "À propos",
         "environmentinfo": "Informations d'environnement",
-        "description": "Cette app vous aide à rester organisé et productif.\nFait avec Expo et React Natif.",
+        "description": "Cette app de gestion vous aide à rester organisé et productif.\nFait avec Expo et React Natif.",
         "changeLanguage": "Changer la langue",
         "name": "Nom de l'App",
         "version": "Version de l'App",
