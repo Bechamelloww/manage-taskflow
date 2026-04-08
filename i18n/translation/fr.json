@@ -1,0 +1,30 @@
+{
+    "settings": {
+        "about": "À propos",
+        "environmentinfo": "Informations d'environnement",
+        "description": "Cette app vous aide à rester organisé et productif.\nFait avec Expo et React Natif.",
+        "changeLanguage": "Changer la langue",
+        "name": "Nom de l'App",
+        "version": "Version de l'App",
+        "env": "Environnement",
+        "apiurl": "URL de l'API"
+    },
+    "title": {
+        "tasks": "Tâches",
+        "settings": "Paramètres"
+    },
+    "modal": {
+        "editTask": "Modifier la tâche",
+        "newTask": "Nouvelle tâche",
+        "title_p": "Que faut-il faire ?",
+        "description_p": "Pouvez-vous détailler ?",
+        "date_p": "Choisir une date...",
+        "save": "Enregistrer",
+        "add": "Ajouter",
+        "cancel": "Annuler"
+    },
+    "about": "À propos",
+    "environmentinfo": "Informations d'environnement",
+    "aboutapp": "Cette app vous aide à rester organisé et productif.\nFait avec Expo et React Native.",
+    "changeLanguage": "Changer la langue"
+}

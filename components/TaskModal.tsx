@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TextInput, Pressable, Platform } from 'r
 import { Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Task } from '@/lib/api';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface TaskModalProps {
   visible: boolean;
@@ -12,6 +13,7 @@ interface TaskModalProps {
 }
 
 export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalProps) => {
+  const { t, changeLanguage, locale } = useTranslation();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<Date | null>(null);
@@ -59,12 +61,12 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable style={styles.modalSheet} onPress={() => { }}>
           <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>{initialTask ? 'Modifier la tâche' : 'Nouvelle tâche'}</Text>
+          <Text style={styles.modalTitle}>{initialTask ? t('modal.editTask') : t('modal.newTask')}</Text>
 
           <Text style={styles.label}>Titre</Text>
           <TextInput
             style={styles.input}
-            placeholder="Que faut-il faire ?"
+            placeholder={t('modal.title_p')}
             placeholderTextColor="#C7C7CC"
             value={title}
             onChangeText={setTitle}
@@ -74,7 +76,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
           <Text style={styles.label}>Description</Text>
           <TextInput
             style={styles.input}
-            placeholder="Pouvez-vous détailler ?"
+            placeholder={t('modal.description_p')}
             placeholderTextColor="#C7C7CC"
             value={description}
             onChangeText={setDescription}
@@ -88,7 +90,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
             testID="due-date-button">
             <Calendar size={16} color="#8E8E93" />
             <Text style={[styles.datePickerText, !dueDate && styles.datePickerPlaceholder]}>
-              {dueDate ? formatDate(dueDate) : 'Choisir une date...'}
+              {dueDate ? formatDate(dueDate) : t('modal.date_p')}
             </Text>
             {dueDate && (
               <Pressable onPress={() => setDueDate(null)}>
@@ -131,14 +133,14 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
 
           <View style={styles.modalActions}>
             <Pressable style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Annuler</Text>
+              <Text style={styles.cancelButtonText}>{t('modal.cancel')}</Text>
             </Pressable>
             <Pressable
               style={[styles.saveButton, !title.trim() && styles.saveButtonDisabled]}
               onPress={handleSave}
               disabled={!title.trim()}
               testID="save-button">
-              <Text style={styles.saveButtonText}>{initialTask ? 'Enregistrer' : 'Ajouter'}</Text>
+              <Text style={styles.saveButtonText}>{initialTask ? t('modal.save') : t('modal.add')}</Text>
             </Pressable>
           </View>
         </Pressable>
