@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Trash2, Calendar, Edit2 } from 'lucide-react-native';
+import { Trash2, Calendar, Edit2, CheckSquare } from 'lucide-react-native';
 import { Task } from '@/lib/api';
 
 interface TaskItemProps {
@@ -8,9 +8,11 @@ interface TaskItemProps {
   onToggleComplete: (id: string, completed: boolean) => void;
   onDelete: (id: string) => void;
   onEdit: (task: Task) => void;
+  multi: boolean;
+  isSelected: boolean;
 }
 
-export const TaskItem = ({ task, onToggleComplete, onDelete, onEdit }: TaskItemProps) => {
+export const TaskItem = ({ task, onToggleComplete, onDelete, onEdit, multi, isSelected }: TaskItemProps) => {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleString('fr-FR', {
@@ -33,6 +35,14 @@ export const TaskItem = ({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
         ]}>
           {task.title}
         </Text>
+        {task.description && (
+          <Text style={[
+            styles.description,
+            task.completed && styles.completedDesc
+          ]}>
+            {task.description}
+          </Text>
+        )}
         {task.dueDate && (
           <View style={styles.dueDateRow}>
             <Calendar size={12} color="#8E8E93" />
@@ -41,18 +51,21 @@ export const TaskItem = ({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
         )}
       </Pressable>
       <View style={styles.actions}>
-        <Pressable
+        {multi && (
+          <CheckSquare size={20} color={isSelected ? '#007AFF' : '#CCC'} />
+        )}
+        {!multi && (<Pressable
           onPress={() => onEdit(task)}
           testID={`edit-button-${task.id}`}
           style={styles.actionButton}>
           <Edit2 size={20} color="#007AFF" />
-        </Pressable>
-        <Pressable
+        </Pressable>)}
+        {!multi && (<Pressable
           onPress={() => onDelete(task.id)}
           testID={`delete-button-${task.id}`}
           style={styles.actionButton}>
           <Trash2 size={20} color="#FF3B30" />
-        </Pressable>
+        </Pressable>)}
       </View>
     </View>
   );
@@ -85,11 +98,22 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     color: '#8E8E93',
   },
+  completedDesc: {
+    opacity: 0
+  },
   dueDateRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
     gap: 4,
+  },
+  description: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 4,
+    fontSize: 10,
+    color: '#cabebe',
   },
   dueDateText: {
     fontSize: 12,
