@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTaskStore } from '@/stores/taskStore';
-import { Plus, Trash } from 'lucide-react-native';
+import { Plus, Trash, ListChecks, X } from 'lucide-react-native';
 import { TaskItem } from '@/components/TaskItem';
 import { TaskModal } from '@/components/TaskModal';
 import { Task } from '@/lib/api';
+import { theme } from '@/lib/colors';
 
 export default function TasksScreen() {
   const { tasks, isLoading, error, fetchTasks, createTask, deleteTask, updateTask } = useTaskStore();
@@ -17,14 +19,12 @@ export default function TasksScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const handleSaveTask = async (taskData: { title: string; description: string; dueDate: string | null }) => {
+
+  const handleSaveTask = async (taskData: { title: string; description: string; dueDate: string | null; color?: string }) => {
     if (editingTask) {
       await updateTask(editingTask.id, taskData);
     } else {
-      await createTask({
-        ...taskData,
-        completed: false,
-      });
+      await createTask({ ...taskData, completed: false });
     }
   };
 
@@ -42,7 +42,7 @@ export default function TasksScreen() {
     setSelectedTasks(prev =>
       prev.includes(id) ? prev.filter(taskId => taskId !== id) : [...prev, id]
     );
-  }
+  };
 
   const deleteSelectedTasks = async () => {
     for (const id of selectedTasks) {
@@ -54,25 +54,31 @@ export default function TasksScreen() {
 
   if (isLoading && tasks.length === 0) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.centerText}>Chargement des tâches...</Text>
-      </View>
+      <SafeAreaView edges={['bottom']} style={styles.container}>
+        <View style={styles.centerState}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={styles.centerText}>Chargement des tâches...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
+      <SafeAreaView edges={['bottom']} style={styles.container}>
+        <View style={styles.centerState}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['bottom']} style={styles.container}>
       <FlatList
         data={tasks}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const isSelected = selectedTasks.includes(item.id);
           return (
@@ -80,9 +86,9 @@ export default function TasksScreen() {
               task={item}
               onToggleComplete={(id, completed) => {
                 if (multiSelectMode) {
-                  toggleSelectTask(id)
+                  toggleSelectTask(id);
                 } else {
-                  updateTask(id, { completed })
+                  updateTask(id, { completed });
                 }
               }}
               onDelete={deleteTask}
@@ -90,15 +96,36 @@ export default function TasksScreen() {
               multi={multiSelectMode}
               isSelected={isSelected}
             />
-          )
+          );
         }}
         ListEmptyComponent={
           <Text style={styles.emptyText}>Aucune tâche pour le moment</Text>
         }
       />
-      <Pressable style={styles.fab} testID='add-button' onPress={openCreateModal}>
-        <Plus size={24} color="#FFFFFF" />
+
+      <Pressable testID="add-button" onPress={openCreateModal} style={styles.fab}>
+        <Plus size={26} color="#FFFFFF" strokeWidth={2.5} />
       </Pressable>
+
+      <Pressable
+        style={[styles.fabSelect, multiSelectMode && styles.fabSelectActive]}
+        onPress={() => {
+          if (multiSelectMode) setSelectedTasks([]);
+          setMultiSelectMode(!multiSelectMode);
+        }}>
+        {multiSelectMode ? (
+          <X size={22} color="#FFF" strokeWidth={2.5} />
+        ) : (
+          <ListChecks size={22} color="#FFF" strokeWidth={2.5} />
+        )}
+      </Pressable>
+
+      {multiSelectMode && selectedTasks.length > 0 && (
+        <Pressable style={styles.deleteAllButton} onPress={deleteSelectedTasks}>
+          <Text style={styles.deleteAllText}>{selectedTasks.length}</Text>
+          <Trash size={20} color="#FFF" />
+        </Pressable>
+      )}
 
       <TaskModal
         visible={modalVisible}
@@ -106,93 +133,136 @@ export default function TasksScreen() {
         onSave={handleSaveTask}
         initialTask={editingTask}
       />
-
-      <Pressable
-        style={[styles.fabSelect, multiSelectMode && styles.fabSelectActive]}
-        onPress={() => {
-          if (multiSelectMode) setSelectedTasks([]);
-          setMultiSelectMode(!multiSelectMode);
-        }}
-      >
-        <Text style={styles.fabSelectText}>
-          {multiSelectMode ? '✕' : '✓'}
-        </Text>
-      </Pressable>
-      {multiSelectMode && selectedTasks.length > 0 && (
-        <Pressable style={styles.deleteAllButton} onPress={deleteSelectedTasks}>
-          <Text style={styles.deleteAllText}>{selectedTasks.length}</Text>
-          <Trash size={20} color="#FFF" />
-        </Pressable>
-      )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.bg,
+  },
+  listContent: {
+    paddingTop: 8,
+    paddingBottom: 140,
+  },
+  header: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  headerTextRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 10,
+  },
+  headerCount: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: theme.text,
+    letterSpacing: -0.8,
+  },
+  headerCountMuted: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.textMuted,
+  },
+  headerPercent: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.primary,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: theme.border,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: theme.primary,
+    borderRadius: 3,
+  },
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    gap: 12,
   },
   centerText: {
     textAlign: 'center',
-    marginTop: 20,
     fontSize: 16,
-    color: '#8E8E93',
+    color: theme.textMuted,
   },
   errorText: {
-    color: '#FF3B30',
+    color: theme.danger,
     textAlign: 'center',
-    marginTop: 20,
     fontSize: 16,
   },
   emptyText: {
     textAlign: 'center',
-    marginTop: 40,
+    marginTop: 60,
     fontSize: 16,
-    color: '#8E8E93',
+    color: theme.textMuted,
   },
   fab: {
     position: 'absolute',
-    right: 24,
+    right: 20,
     bottom: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#007AFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 6,
+    shadowColor: theme.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
   fabSelect: {
     position: 'absolute',
-    bottom: 24,
-    right: 100,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: 28,
+    right: 96,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: '#FF9500',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#FF9500',
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowRadius: 10,
     elevation: 5,
   },
-  fabSelectActive: { backgroundColor: '#FF3B30' },
-  fabSelectText: { color: '#FFF', fontSize: 24, fontWeight: '600' },
-  deleteAllButton: {
-    backgroundColor: '#FF3B30',
-    marginHorizontal: 16,
-    padding: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: 24,
+  fabSelectActive: {
+    backgroundColor: theme.danger,
+    shadowColor: theme.danger,
   },
-  deleteAllText: { color: '#FFF', fontWeight: '600' },
+  deleteAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: theme.danger,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 26,
+    position: 'absolute',
+    bottom: 36,
+    alignSelf: 'center',
+    shadowColor: theme.danger,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  deleteAllText: {
+    color: '#FFF',
+    fontWeight: '700',
+    fontSize: 15,
+  },
 });
