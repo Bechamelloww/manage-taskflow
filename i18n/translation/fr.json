@@ -21,10 +21,15 @@
         "date_p": "Choisir une date...",
         "save": "Enregistrer",
         "add": "Ajouter",
-        "cancel": "Annuler"
+        "cancel": "Annuler",
+        "title": "Titre",
+        "desc": "Description",
+        "color": "Couleur",
+        "due": "Date limite"
     },
-    "about": "À propos",
-    "environmentinfo": "Informations d'environnement",
-    "aboutapp": "Cette app vous aide à rester organisé et productif.\nFait avec Expo et React Native.",
-    "changeLanguage": "Changer la langue"
+    "notf": {
+        "oops": "Oops",
+        "screen": "Cet page n'existe pas.",
+        "link": "Retourner sur la page d'acceuil!"
+    }
 }

@@ -32,34 +32,34 @@ export default function SettingsScreen() {
             </View>
           ))}
         </View>
-        
+
         <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.changeLanguage')}</Text>
-        {languages.map((lang) => {
-          const isActive = locale === lang.code;
+          <Text style={styles.sectionTitle}>{t('settings.changeLanguage')}</Text>
+          {languages.map((lang) => {
+            const isActive = locale === lang.code;
 
-          return (
-            <Pressable
-              key={lang.code}
-              style={[styles.languageItem, isActive && styles.activeItem]}
-              onPress={() => changeLanguage(lang.code)}
-            >
-              <Text style={styles.flag}>{lang.flag}</Text>
+            return (
+              <Pressable
+                key={lang.code}
+                style={[styles.languageItem, isActive && styles.activeItem]}
+                onPress={() => changeLanguage(lang.code)}
+              >
+                <Text style={styles.flag}>{lang.flag}</Text>
 
-              <Text style={styles.languageText}>
-                {lang.label}
-              </Text>
+                <Text style={styles.languageText}>
+                  {lang.label}
+                </Text>
 
-              {isActive && <Text style={styles.check}>✓</Text>}
-            </Pressable>
-          );
-        })}
-      </View>
+                {isActive && <Text style={styles.check}>✓</Text>}
+              </Pressable>
+            );
+          })}
+        </View>
 
         <View style={styles.section}>
           <View style={styles.aboutHeader}>
             <Info size={18} color={theme.primary} />
-            <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
+            <Text style={styles.sectionTitle2}>{t('settings.about')}</Text>
           </View>
           <Text style={styles.description}>
             {t('settings.description')}
@@ -122,6 +122,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: theme.text,
     marginBottom: 12,
+    letterSpacing: -0.3,
+  },
+  sectionTitle2: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.text,
+    marginBottom: 12,
+    marginTop: 10,
     letterSpacing: -0.3,
   },
   aboutHeader: {

@@ -21,10 +21,15 @@
         "date_p": "Pick an date...",
         "save": "Save",
         "add": "Add",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "title": "Title",
+        "desc": "Description",
+        "color": "Color",
+        "due": "Due date"
     },
-    "about": "About",
-    "environmentinfo": "Environment Information",
-    "aboutapp": "This task management app helps you stay organized and productive.\nBuilt with Expo and React Native.",
-    "changeLanguage": "Change language"
+    "notf": {
+        "oops": "Oops",
+        "screen": "This screen doesn't exist.",
+        "link": "Go to home screen!"
+    }
 }

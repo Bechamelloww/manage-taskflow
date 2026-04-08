@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useEffect } from 'react';
 import { useLanguageStore } from '@/stores/languageStore';
+import * as NavigationBar from 'expo-navigation-bar';
 
 
 export default function RootLayout() {
@@ -11,6 +12,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     loadLocale();
+    NavigationBar.setVisibilityAsync('hidden');
+    NavigationBar.setBehaviorAsync('overlay-swipe');
   }, []);
 
   return (

@@ -59,7 +59,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalSheet} onPress={() => {}}>
+        <Pressable style={styles.modalSheet} onPress={() => { }}>
           <View style={styles.modalHandle} />
 
           <View style={styles.headerRow}>
@@ -71,7 +71,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
             </Pressable>
           </View>
 
-          <Text style={styles.label}>Titre</Text>
+          <Text style={styles.label}>{t('modal.title')}</Text>
           <TextInput
             style={styles.input}
             placeholder={t('modal.title_p')}
@@ -81,7 +81,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
             testID="title-input"
           />
 
-          <Text style={styles.label}>Description</Text>
+          <Text style={styles.label}>{t('modal.desc')}</Text>
           <TextInput
             style={[styles.input, styles.inputMultiline]}
             placeholder={t('modal.description_p')}
@@ -92,7 +92,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
             testID="description-input"
           />
 
-          <Text style={styles.label}>Couleur</Text>
+          <Text style={styles.label}>{t('modal.color')}</Text>
           <View style={styles.colorRow}>
             {TASK_COLORS.map(c => {
               const selected = c.hex === color;
@@ -112,7 +112,7 @@ export const TaskModal = ({ visible, onClose, onSave, initialTask }: TaskModalPr
             })}
           </View>
 
-          <Text style={styles.label}>Date limite</Text>
+          <Text style={styles.label}>{t('modal.due')}</Text>
           <Pressable
             style={styles.datePickerButton}
             onPress={() => setShowDatePicker(true)}
