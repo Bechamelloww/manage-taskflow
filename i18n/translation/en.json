@@ -31,5 +31,9 @@
         "oops": "Oops",
         "screen": "This screen doesn't exist.",
         "link": "Go to home screen!"
+    },
+    "index": {
+        "loading": "Load Tasks...",
+        "noTask": "Aucune tâche pour le moment"
     }
 }
