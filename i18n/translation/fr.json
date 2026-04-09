@@ -31,5 +31,9 @@
         "oops": "Oops",
         "screen": "Cet page n'existe pas.",
         "link": "Retourner sur la page d'acceuil!"
+    },
+    "index": {
+        "loading": "Chargement des tâches...",
+        "noTask": "Aucune tâche pour le moment"
     }
 }

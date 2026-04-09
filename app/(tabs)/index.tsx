@@ -7,8 +7,10 @@ import { TaskItem } from '@/components/TaskItem';
 import { TaskModal } from '@/components/TaskModal';
 import { Task } from '@/lib/api';
 import { theme } from '@/lib/colors';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function TasksScreen() {
+  const { t, changeLanguage, locale } = useTranslation();
   const { tasks, isLoading, error, fetchTasks, createTask, deleteTask, updateTask } = useTaskStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -57,7 +59,7 @@ export default function TasksScreen() {
       <SafeAreaView edges={['bottom']} style={styles.container}>
         <View style={styles.centerState}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.centerText}>Chargement des tâches...</Text>
+          <Text style={styles.centerText}>{t('index.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -99,7 +101,7 @@ export default function TasksScreen() {
           );
         }}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>Aucune tâche pour le moment</Text>
+          <Text style={styles.emptyText}>{t('index.noTask')}</Text>
         }
       />
 
