@@ -139,4 +139,17 @@ describe('taskStore', () => {
     });
   });
 
+  describe('reorderTasks', () => {
+    it('replaces tasks with the new order', () => {
+      const tasks = [
+        { id: '1', title: 'A', completed: false, description: '', createdAt: '', updatedAt: '' },
+        { id: '2', title: 'B', completed: false, description: '', createdAt: '', updatedAt: '' },
+      ];
+      useTaskStore.setState({ tasks });
+
+      useTaskStore.getState().reorderTasks([tasks[1], tasks[0]]);
+
+      expect(useTaskStore.getState().tasks[0].id).toBe('2');
+    });
+  });
 });

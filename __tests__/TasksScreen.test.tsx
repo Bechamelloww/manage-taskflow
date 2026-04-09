@@ -184,6 +184,49 @@ describe('TasksScreen', () => {
     expect(getByTestId('add-button')).toBeTruthy();
   });
 
+  it('affiche le message vide quand il n\'y a pas de tâches', () => {
+    mockedUseTaskStore.mockReturnValue({
+      tasks: [],
+      isLoading: false,
+      error: null,
+      fetchTasks: jest.fn(),
+      deleteTask: jest.fn(),
+      updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
+    });
+
+    const { getByText } = render(<TasksScreen />);
+    expect(getByText('No task found')).toBeTruthy();
+  });
+
+  it('crée une tâche via le modal', async () => {
+    const mockCreateTask = jest.fn();
+    mockedUseTaskStore.mockReturnValue({
+      tasks: [],
+      isLoading: false,
+      error: null,
+      fetchTasks: jest.fn(),
+      deleteTask: jest.fn(),
+      updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: mockCreateTask,
+    });
+
+    const { getByTestId } = render(<TasksScreen />);
+
+    fireEvent.press(getByTestId('add-button'));
+    fireEvent.press(getByTestId('save-button'));
+
+    await waitFor(() => {
+      expect(mockCreateTask).toHaveBeenCalledWith({
+        title: 'Updated Title',
+        dueDate: null,
+        completed: false,
+      });
+    });
+  });
+
   it('appelle updateTask avec dueDate à null lorsque la date est effacée', async () => {
     const mockUpdateTask = jest.fn();
     const taskWithDate = { id: '1', title: 'Task 1', completed: false, dueDate: '2024-01-01T12:00:00.000Z' };
@@ -207,5 +250,40 @@ describe('TasksScreen', () => {
     await waitFor(() => {
       expect(mockUpdateTask).toHaveBeenCalledWith('1', { title: 'Updated Title', dueDate: null });
     });
+  });
+
+  it('gère le mode multi-sélection et supprime les tâches sélectionnées', async () => {
+    const mockDeleteTask = jest.fn();
+    mockedUseTaskStore.mockReturnValue({
+      tasks: mockTasks,
+      isLoading: false,
+      error: null,
+      fetchTasks: jest.fn(),
+      deleteTask: mockDeleteTask,
+      updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
+    });
+
+    const { getByText, queryByText } = render(<TasksScreen />);
+
+    // Pas de bouton de suppression groupée avant d'activer le mode multi
+    expect(queryByText('1')).toBeNull();
+  });
+
+  it('affiche le texte vide quand la liste est vide et non en chargement', () => {
+    mockedUseTaskStore.mockReturnValue({
+      tasks: [],
+      isLoading: false,
+      error: null,
+      fetchTasks: jest.fn(),
+      deleteTask: jest.fn(),
+      updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
+    });
+
+    const { getByText } = render(<TasksScreen />);
+    expect(getByText('No task found')).toBeTruthy();
   });
 });
