@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTaskStore } from '@/stores/taskStore';
 import { Plus, Trash, ListChecks, X } from 'lucide-react-native';
@@ -8,10 +8,12 @@ import { TaskModal } from '@/components/TaskModal';
 import { Task } from '@/lib/api';
 import { theme } from '@/lib/colors';
 import { useTranslation } from '@/hooks/useTranslation';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function TasksScreen() {
   const { t, changeLanguage, locale } = useTranslation();
-  const { tasks, isLoading, error, fetchTasks, createTask, deleteTask, updateTask } = useTaskStore();
+  const { tasks, isLoading, error, fetchTasks, createTask, deleteTask, updateTask, reorderTasks } = useTaskStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
@@ -22,23 +24,23 @@ export default function TasksScreen() {
   }, [fetchTasks]);
 
 
-  const handleSaveTask = async (taskData: { title: string; description: string; dueDate: string | null; color?: string }) => {
+  const handleSaveTask = useCallback(async (taskData: { title: string; description: string; dueDate: string | null; color?: string }) => {
     if (editingTask) {
       await updateTask(editingTask.id, taskData);
     } else {
       await createTask({ ...taskData, completed: false });
     }
-  };
+  }, [editingTask, updateTask, createTask]);
 
-  const openEditModal = (task: Task) => {
+  const openEditModal = useCallback((task: Task) => {
     setEditingTask(task);
     setModalVisible(true);
-  };
+  }, []);
 
-  const openCreateModal = () => {
+  const openCreateModal = useCallback(() => {
     setEditingTask(null);
     setModalVisible(true);
-  };
+  }, []);
 
   const toggleSelectTask = (id: string) => {
     setSelectedTasks(prev =>
@@ -53,6 +55,28 @@ export default function TasksScreen() {
     setSelectedTasks([]);
     setMultiSelectMode(false);
   };
+
+  const renderItem = useCallback(({ item, drag, isActive }: RenderItemParams<Task>) => {
+    const isSelected = selectedTasks.includes(item.id);
+    return (
+      <TaskItem
+        task={item}
+        onToggleComplete={(id, completed) => {
+          if (multiSelectMode) {
+            toggleSelectTask(id);
+          } else {
+            updateTask(id, { completed });
+          }
+        }}
+        onDelete={deleteTask}
+        onEdit={openEditModal}
+        multi={multiSelectMode}
+        isSelected={isSelected}
+        onDrag={drag}
+        isActive={isActive}
+      />
+    );
+  }, [multiSelectMode, selectedTasks, deleteTask, openEditModal, updateTask, toggleSelectTask]);
 
   if (isLoading && tasks.length === 0) {
     return (
@@ -76,34 +100,18 @@ export default function TasksScreen() {
   }
 
   return (
-    <SafeAreaView edges={['bottom']} style={styles.container}>
-      <FlatList
-        data={tasks}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const isSelected = selectedTasks.includes(item.id);
-          return (
-            <TaskItem
-              task={item}
-              onToggleComplete={(id, completed) => {
-                if (multiSelectMode) {
-                  toggleSelectTask(id);
-                } else {
-                  updateTask(id, { completed });
-                }
-              }}
-              onDelete={deleteTask}
-              onEdit={openEditModal}
-              multi={multiSelectMode}
-              isSelected={isSelected}
-            />
-          );
-        }}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>{t('index.noTask')}</Text>
-        }
-      />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView edges={['bottom']} style={styles.container}>
+        <DraggableFlatList
+          data={tasks}
+          keyExtractor={item => item.id}
+          onDragEnd={({ data }) => reorderTasks(data)}
+          contentContainerStyle={styles.listContent}
+          renderItem={renderItem}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>{t('index.noTask')}</Text>
+          }
+        />
 
       <Pressable testID="add-button" onPress={openCreateModal} style={styles.fab}>
         <Plus size={26} color="#FFFFFF" strokeWidth={2.5} />
@@ -136,7 +144,8 @@ export default function TasksScreen() {
         initialTask={editingTask}
       />
     </SafeAreaView>
-  );
+  </GestureHandlerRootView>
+);
 }
 
 const styles = StyleSheet.create({

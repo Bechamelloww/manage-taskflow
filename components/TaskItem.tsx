@@ -11,6 +11,8 @@ interface TaskItemProps {
   onEdit: (task: Task) => void;
   multi: boolean;
   isSelected: boolean;
+  onDrag?: () => void;
+  isActive?: boolean;
 }
 
 const formatDate = (dateStr: string) => {
@@ -23,7 +25,7 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-export const TaskItem = ({ task, onToggleComplete, onDelete, onEdit, multi, isSelected }: TaskItemProps) => {
+export const TaskItem = ({ task, onToggleComplete, onDelete, onEdit, multi, isSelected, onDrag, isActive }: TaskItemProps) => {
   const color = task.color || DEFAULT_COLOR;
   const tint = getTint(color);
   const isOverdue = !!task.dueDate && !task.completed && new Date(task.dueDate).getTime() < Date.now();
@@ -31,11 +33,14 @@ export const TaskItem = ({ task, onToggleComplete, onDelete, onEdit, multi, isSe
   return (
     <Pressable
       onPress={() => onToggleComplete(task.id, !task.completed)}
+      onLongPress={multi ? undefined : onDrag}
+      delayLongPress={200}
       style={({ pressed }) => [
         styles.taskItem,
         { backgroundColor: tint },
         task.completed && styles.taskItemCompleted,
-        pressed && styles.taskItemPressed,
+        (pressed || isActive) && styles.taskItemPressed,
+        isActive && { elevation: 8, zIndex: 99, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65 },
       ]}>
       <View style={[styles.cornerAccent, { backgroundColor: color }]} />
 
