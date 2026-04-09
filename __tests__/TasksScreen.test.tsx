@@ -9,17 +9,31 @@ import { View, Button } from 'react-native';
 const mockedUseTaskStore = useTaskStore as unknown as jest.Mock;
 
 // Mock pour TaskModal car il utilise DateTimePicker qui peut être complexe à tester sans mocks appropriés
-jest.mock('@/components/TaskModal', () => ({
-  TaskModal: ({ visible, onSave, onClose }: any) => {
-    if (!visible) return null;
-    return (
-      <View testID="task-modal">
-        <Button testID="save-button" title="Save" onPress={() => onSave({ title: 'Updated Title', dueDate: null })} />
-        <Button testID="close-button" title="Close" onPress={onClose} />
-      </View>
-    );
-  }
-}));
+jest.mock('@/components/TaskModal', () => {
+  const React = require('react');
+  const { View, Button } = require('react-native');
+
+  return {
+    TaskModal: ({ visible, onSave, onClose }: any) => {
+      if (!visible) return null;
+
+      return (
+        <View testID="task-modal">
+          <Button
+            testID="save-button"
+            title="Save"
+            onPress={() => onSave({ title: 'Updated Title', dueDate: null })}
+          />
+          <Button
+            testID="close-button"
+            title="Close"
+            onPress={onClose}
+          />
+        </View>
+      );
+    },
+  };
+});
 
 describe('TasksScreen', () => {
   const mockTasks = [
