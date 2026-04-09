@@ -18,6 +18,7 @@ jest.mock('@/lib/api', () => ({
 // Mock du store
 jest.mock('@/stores/taskStore');
 
+
 // Mock pour lucide-react-native
 jest.mock('lucide-react-native', () => {
   const { View } = require('react-native');
@@ -80,6 +81,8 @@ describe('TasksScreen', () => {
       fetchTasks: jest.fn(),
       deleteTask: jest.fn(),
       updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
     });
 
     const { getByText } = render(<TasksScreen />);
@@ -95,6 +98,8 @@ describe('TasksScreen', () => {
       fetchTasks: jest.fn(),
       deleteTask: jest.fn(),
       updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
     });
 
     const { getByText } = render(<TasksScreen />);
@@ -110,11 +115,12 @@ describe('TasksScreen', () => {
       fetchTasks: jest.fn(),
       deleteTask: jest.fn(),
       updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
     });
 
     const { getByText } = render(<TasksScreen />);
 
-    // Vérifie que les titres des tâches sont affichés
     expect(getByText('Task 1')).toBeTruthy();
     expect(getByText('Task 2')).toBeTruthy();
   });
@@ -128,14 +134,14 @@ describe('TasksScreen', () => {
       fetchTasks: jest.fn(),
       deleteTask: jest.fn(),
       updateTask: mockUpdateTask,
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
     });
 
     const { getByText } = render(<TasksScreen />);
 
-    // Simule un appui sur la première tâche
     fireEvent.press(getByText('Task 1'));
 
-    // Vérifie que la fonction updateTask a été appelée
     expect(mockUpdateTask).toHaveBeenCalledWith('1', { completed: true });
   });
 
@@ -148,14 +154,14 @@ describe('TasksScreen', () => {
       fetchTasks: jest.fn(),
       deleteTask: mockDeleteTask,
       updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
     });
 
     const { getByTestId } = render(<TasksScreen />);
 
-    // Simule un appui sur l'icône de suppression pour la première tâche
     fireEvent.press(getByTestId('delete-button-1'));
 
-    // Vérifie que la fonction deleteTask a été appelée
     expect(mockDeleteTask).toHaveBeenCalledWith('1');
   });
 
@@ -168,12 +174,13 @@ describe('TasksScreen', () => {
       fetchTasks: jest.fn(),
       deleteTask: jest.fn(),
       updateTask: jest.fn(),
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
       addTask: mockAddTask,
     });
 
     const { getByTestId } = render(<TasksScreen />);
 
-    // Vérifie que le bouton flottant est présent
     expect(getByTestId('add-button')).toBeTruthy();
   });
 
@@ -188,15 +195,13 @@ describe('TasksScreen', () => {
       fetchTasks: jest.fn(),
       deleteTask: jest.fn(),
       updateTask: mockUpdateTask,
+      reorderTasks: jest.fn(),
+      createTask: jest.fn(),
     });
 
     const { getByTestId } = render(<TasksScreen />);
 
-    // Simule l'ouverture de la modale d'édition
     fireEvent.press(getByTestId('edit-button-1'));
-
-    // Le mock de TaskModal devrait maintenant être visible
-    // On simule le clic sur "Save" qui appelle onSave avec dueDate: null
     fireEvent.press(getByTestId('save-button'));
 
     await waitFor(() => {
