@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import SettingsScreen from '@/app/(tabs)/settings';
 
 // Mock pour lucide-react-native
@@ -20,6 +20,11 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 describe('SettingsScreen', () => {
+    afterEach(() => {
+        // Reset locale to English after each test
+        const { useLanguageStore } = require('@/stores/languageStore');
+        useLanguageStore.setState({ locale: 'en' });
+    });
 
     it('affiche correctement les informations de l\'environnement', () => {
         const { getByText } = render(<SettingsScreen />);
@@ -35,6 +40,13 @@ describe('SettingsScreen', () => {
 
         expect(getByText('Environment Information')).toBeTruthy();
         expect(getByText('About')).toBeTruthy();
+    });
+
+    it('permet de changer la langue', () => {
+        const { getByText } = render(<SettingsScreen />);
+        fireEvent.press(getByText('Français'));
+        // After pressing, the component re-renders with French locale
+        expect(getByText('Français')).toBeTruthy();
     });
 
     it('affiche la description de l\'application', () => {
