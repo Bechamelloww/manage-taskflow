@@ -9,6 +9,7 @@ interface TaskStore {
   createTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateTask: (id: string, task: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+  reorderTasks: (newTasks: Task[]) => void;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -35,12 +36,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await TasksAPI.createTask(task);
-      const newTasks = [...get().tasks, response.data].sort((a, b) => {
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      });
-      set({ tasks: newTasks });
+      set({ tasks: [response.data, ...get().tasks] });
     } catch {
       set({ error: 'Failed to create task' });
     } finally {
@@ -51,11 +47,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await TasksAPI.updateTask(id, task);
-      const updatedTasks = get().tasks.map((t) => (t.id === id ? response.data : t)).sort((a, b) => {
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      });
+      const updatedTasks = get().tasks.map((t) => (t.id === id ? response.data : t));
       set({
         tasks: updatedTasks,
       });
@@ -75,5 +67,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     } finally {
       set({ isLoading: false });
     }
+  },
+  reorderTasks: (newTasks) => {
+    set({ tasks: newTasks });
   },
 }));
