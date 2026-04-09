@@ -1,20 +1,22 @@
+import { jest, describe, it, expect } from '@jest/globals';
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import TasksScreen from '@/app/(tabs)/index';
 import { useTaskStore } from '@/stores/taskStore';
+import { View, Button } from 'react-native';
 
 // Mock du store
-jest.mock('@/stores/taskStore');
+const mockedUseTaskStore = useTaskStore as unknown as jest.Mock;
 
 // Mock pour TaskModal car il utilise DateTimePicker qui peut être complexe à tester sans mocks appropriés
 jest.mock('@/components/TaskModal', () => ({
-  TaskModal: ({ visible, onSave, onClose, initialTask }: any) => {
+  TaskModal: ({ visible, onSave, onClose }: any) => {
     if (!visible) return null;
     return (
-      <div testID="task-modal">
-        <button testID="save-button" onClick={() => onSave({ title: 'Updated Title', dueDate: null })}>Save</button>
-        <button testID="close-button" onClick={onClose}>Close</button>
-      </div>
+      <View testID="task-modal">
+        <Button testID="save-button" title="Save" onPress={() => onSave({ title: 'Updated Title', dueDate: null })} />
+        <Button testID="close-button" title="Close" onPress={onClose} />
+      </View>
     );
   }
 }));
@@ -27,7 +29,7 @@ describe('TasksScreen', () => {
   ];
 
   it('affiche le message de chargement quand isLoading est vrai', () => {
-    useTaskStore.mockReturnValue({
+    mockedUseTaskStore.mockReturnValue({
       tasks: [],
       isLoading: true,
       error: null,
@@ -42,7 +44,7 @@ describe('TasksScreen', () => {
   });
 
   it('affiche le message d\'erreur quand une erreur se produit', () => {
-    useTaskStore.mockReturnValue({
+    mockedUseTaskStore.mockReturnValue({
       tasks: [],
       isLoading: false,
       error: 'Something went wrong!',
@@ -57,7 +59,7 @@ describe('TasksScreen', () => {
   });
 
   it('affiche les tâches correctement', () => {
-    useTaskStore.mockReturnValue({
+    mockedUseTaskStore.mockReturnValue({
       tasks: mockTasks,
       isLoading: false,
       error: null,
@@ -75,7 +77,7 @@ describe('TasksScreen', () => {
 
   it('appelle la fonction updateTask lorsque l\'utilisateur appuie sur une tâche', () => {
     const mockUpdateTask = jest.fn();
-    useTaskStore.mockReturnValue({
+    mockedUseTaskStore.mockReturnValue({
       tasks: mockTasks,
       isLoading: false,
       error: null,
@@ -95,7 +97,7 @@ describe('TasksScreen', () => {
 
   it('appelle la fonction deleteTask lorsque l\'utilisateur appuie sur l\'icône de suppression', () => {
     const mockDeleteTask = jest.fn();
-    useTaskStore.mockReturnValue({
+    mockedUseTaskStore.mockReturnValue({
       tasks: mockTasks,
       isLoading: false,
       error: null,
@@ -115,7 +117,7 @@ describe('TasksScreen', () => {
 
   it('affiche le bouton d\'ajout flottant', () => {
     const mockAddTask = jest.fn();
-    useTaskStore.mockReturnValue({
+    mockedUseTaskStore.mockReturnValue({
       tasks: mockTasks,
       isLoading: false,
       error: null,
@@ -134,8 +136,8 @@ describe('TasksScreen', () => {
   it('appelle updateTask avec dueDate à null lorsque la date est effacée', async () => {
     const mockUpdateTask = jest.fn();
     const taskWithDate = { id: '1', title: 'Task 1', completed: false, dueDate: '2024-01-01T12:00:00.000Z' };
-    
-    useTaskStore.mockReturnValue({
+
+    mockedUseTaskStore.mockReturnValue({
       tasks: [taskWithDate],
       isLoading: false,
       error: null,
