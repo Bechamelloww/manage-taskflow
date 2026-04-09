@@ -3,23 +3,67 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import TasksScreen from '@/app/(tabs)/index';
 import { useTaskStore } from '@/stores/taskStore';
-import { View, Button } from 'react-native';
+
+// Mock de l'API pour éviter les problèmes avec axios/fetch
+jest.mock('@/lib/api', () => ({
+  TasksAPI: {
+    getTasks: jest.fn(),
+    createTask: jest.fn(),
+    updateTask: jest.fn(),
+    deleteTask: jest.fn(),
+  },
+  Task: {},
+}));
 
 // Mock du store
-const mockedUseTaskStore = useTaskStore as unknown as jest.Mock;
+jest.mock('@/stores/taskStore');
+
+// Mock pour lucide-react-native
+jest.mock('lucide-react-native', () => {
+  const { View } = require('react-native');
+  const icon = (props: any) => <View testID={props.testID} />;
+  return {
+    Plus: icon,
+    Trash: icon,
+    Trash2: icon,
+    ListChecks: icon,
+    X: icon,
+    Calendar: icon,
+    Pencil: icon,
+    Check: icon,
+  };
+});
+
+// Mock pour react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  const { View } = require('react-native');
+  return {
+    SafeAreaView: ({ children, ...props }: any) => <View {...props}>{children}</View>,
+    SafeAreaProvider: ({ children }: any) => <>{children}</>,
+  };
+});
 
 // Mock pour TaskModal car il utilise DateTimePicker qui peut être complexe à tester sans mocks appropriés
-jest.mock('@/components/TaskModal', () => ({
-  TaskModal: ({ visible, onSave, onClose }: any) => {
-    if (!visible) return null;
-    return (
-      <View testID="task-modal">
-        <Button testID="save-button" title="Save" onPress={() => onSave({ title: 'Updated Title', dueDate: null })} />
-        <Button testID="close-button" title="Close" onPress={onClose} />
-      </View>
-    );
-  }
-}));
+jest.mock('@/components/TaskModal', () => {
+  const { View, Pressable, Text } = require('react-native');
+  return {
+    TaskModal: ({ visible, onSave, onClose, initialTask }: any) => {
+      if (!visible) return null;
+      return (
+        <View testID="task-modal">
+          <Pressable testID="save-button" onPress={() => onSave({ title: 'Updated Title', dueDate: null })}>
+            <Text>Save</Text>
+          </Pressable>
+          <Pressable testID="close-button" onPress={onClose}>
+            <Text>Close</Text>
+          </Pressable>
+        </View>
+      );
+    }
+  };
+});
+
+const mockedUseTaskStore = useTaskStore as unknown as jest.Mock;
 
 describe('TasksScreen', () => {
   const mockTasks = [
@@ -40,7 +84,7 @@ describe('TasksScreen', () => {
 
     const { getByText } = render(<TasksScreen />);
 
-    expect(getByText('Chargement des tâches...')).toBeTruthy();
+    expect(getByText('Load Tasks...')).toBeTruthy();
   });
 
   it('affiche le message d\'erreur quand une erreur se produit', () => {
@@ -146,11 +190,9 @@ describe('TasksScreen', () => {
       updateTask: mockUpdateTask,
     });
 
-    const { getByText, getByTestId } = render(<TasksScreen />);
+    const { getByTestId } = render(<TasksScreen />);
 
     // Simule l'ouverture de la modale d'édition
-    // Note: Dans notre mock de TaskItem, onEdit est appelé quand on clique sur le bouton d'édition
-    // Mais ici on utilise le composant réel TaskItem qui a un bouton d'édition
     fireEvent.press(getByTestId('edit-button-1'));
 
     // Le mock de TaskModal devrait maintenant être visible
