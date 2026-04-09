@@ -74,7 +74,6 @@ describe('TasksScreen', () => {
 
   it('affiche le message de chargement quand isLoading est vrai', () => {
     mockedUseTaskStore.mockReturnValue({
-    mockedUseTaskStore.mockReturnValue({
       tasks: [],
       isLoading: true,
       error: null,
