@@ -34,6 +34,6 @@
     },
     "index": {
         "loading": "Load Tasks...",
-        "noTask": "Aucune tâche pour le moment"
+        "noTask": "No task found"
     }
 }
