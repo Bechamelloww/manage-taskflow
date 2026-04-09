@@ -1,3 +1,4 @@
+import { jest, describe, it, expect } from '@jest/globals';
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import TasksScreen from '@/app/(tabs)/index';
@@ -72,6 +73,7 @@ describe('TasksScreen', () => {
   ];
 
   it('affiche le message de chargement quand isLoading est vrai', () => {
+    mockedUseTaskStore.mockReturnValue({
     mockedUseTaskStore.mockReturnValue({
       tasks: [],
       isLoading: true,
